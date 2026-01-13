@@ -2,23 +2,22 @@
 
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Boolean
+from sqlalchemy import Column, String, Boolean, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from .base import BaseModel
+from .base import Base
 
 
-class User(BaseModel):
+class User(Base):
     """Modelo de Usuario para autenticación y gestión de usuarios."""
     
     __tablename__ = "users"
     
     # Identificador UUID
-    uuid = Column(
+    id = Column(
         UUID(as_uuid=True),
         default=uuid.uuid4,
-        unique=True,
-        nullable=False,
+        primary_key=True,     
         index=True,
         comment="Identificador único UUID del usuario"
     )
@@ -60,9 +59,21 @@ class User(BaseModel):
         comment="Usuario administrador del sistema"
     )
     
-    # Timestamps automáticos heredados de BaseModel:
-    # - created_at
-    # - updated_at
+    # Timestamps timezone-aware
+    created_at = Column(
+        DateTime(timezone=True),
+        default=datetime.utcnow,
+        nullable=False,
+        comment="Fecha de creación del registro"
+    )
+    
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+        comment="Fecha de última actualización"
+    )
     
     # Relaciones
     # company_users = relationship("CompanyUser", back_populates="user")

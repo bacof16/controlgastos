@@ -231,3 +231,56 @@ def list_notification_queue(
     queue_entries = query.offset(offset).limit(limit).all()
     
     return queue_entries
+
+# Retry Failed Notification Endpoint
+@router.post(
+    "/queue/{queue_id}/retry",
+    status_code=status.HTTP_200_OK,
+    summary="Retry failed notification",
+)
+def retry_failed_notification(
+    queue_id: UUID,
+    db: Session = Depends(get_db),
+):
+    """Retry a failed notification by resetting it to pending status.
+    
+    Args:
+        queue_id: UUID of the notification to retry
+    
+    Returns:
+        Success message confirming the notification was queued for retry
+    
+    Raises:
+        HTTPException 404: If notification not found
+        HTTPException 400: If notification status is not 'failed'
+    """
+    # Find the notification
+    db_queue = db.query(NotificationQueue).filter(
+        NotificationQueue.id == queue_id
+    ).first()
+    
+    if not db_queue:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Notification not found",
+        )
+    
+    # Check if status is failed
+    if db_queue.status != "failed":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot retry notification with status '{db_queue.status}'. Only 'failed' notifications can be retried.",
+        )
+    
+    # Reset to pending for retry
+    db_queue.status = "pending"
+    db_queue.sent_at = None
+    # Keep payload intact - do not modify
+    
+    db.commit()
+    db.refresh(db_queue)
+    
+    return {
+        "status": "ok",
+        "message": "Notification queued for retry"
+    }

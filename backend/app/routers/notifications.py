@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from uuid import UUID
+import logging
+from datetime import datetime
 
 from app.models.database import get_db
 from app.models.notification_settings import NotificationSettings
@@ -284,3 +286,77 @@ def retry_failed_notification(
         "status": "ok",
         "message": "Notification queued for retry"
     }
+
+# Logger configuration
+logger = logging.getLogger(__name__)
+
+
+# Health Check Endpoint
+@router.get(
+    "/health",
+    status_code=status.HTTP_200_OK,
+    summary="Health check and metrics",
+)
+def health_check(
+    db: Session = Depends(get_db),
+):
+    """Get system health and notification metrics.
+    
+    Returns:
+        Health status with notification queue metrics:
+        - pending_count: Number of pending notifications
+        - sent_count: Number of successfully sent notifications
+        - failed_count: Number of failed notifications
+        - last_successful_send: Timestamp of last successful notification
+    """
+    try:
+        # Count notifications by status using efficient queries
+        from sqlalchemy import func
+        
+        # Get counts for each status
+        pending_count = db.query(func.count(NotificationQueue.id)).filter(
+            NotificationQueue.status == "pending"
+        ).scalar() or 0
+        
+        sent_count = db.query(func.count(NotificationQueue.id)).filter(
+            NotificationQueue.status == "sent"
+        ).scalar() or 0
+        
+        failed_count = db.query(func.count(NotificationQueue.id)).filter(
+            NotificationQueue.status == "failed"
+        ).scalar() or 0
+        
+        # Get last successful send timestamp
+        last_sent = db.query(func.max(NotificationQueue.sent_at)).filter(
+            NotificationQueue.status == "sent",
+            NotificationQueue.sent_at.isnot(None)
+        ).scalar()
+        
+        logger.info(
+            "Health check performed",
+            extra={
+                "pending": pending_count,
+                "sent": sent_count,
+                "failed": failed_count,
+                "last_sent": last_sent.isoformat() if last_sent else None
+            }
+        )
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.utcnow().isoformat(),
+            "metrics": {
+                "pending_count": pending_count,
+                "sent_count": sent_count,
+                "failed_count": failed_count,
+                "last_successful_send": last_sent.isoformat() if last_sent else None,
+                "total_notifications": pending_count + sent_count + failed_count
+            }
+        }
+    
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Health check failed"
+        )

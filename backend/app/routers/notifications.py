@@ -164,3 +164,22 @@ def update_notification_queue(
     db.commit()
     db.refresh(db_queue)
     return db_queue
+
+
+# Worker Endpoint
+
+@router.post(
+    "/process",
+    status_code=status.HTTP_200_OK,
+    summary="Process notification queue",
+)
+def process_notifications():
+    """Manually trigger processing of notification queue."""
+    from app.workers.notification_worker import process_notification_queue
+    
+    process_notification_queue()
+    
+    return {
+        "status": "ok",
+        "message": "Notification queue processed"
+    }

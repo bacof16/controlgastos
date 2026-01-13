@@ -9,7 +9,6 @@ from sqlalchemy import and_
 from app.models.database import SessionLocal
 from app.models.notification_queue import NotificationQueue
 from app.models.notification_settings import NotificationSettings
-from app.services.notification_builder import format_telegram_message, format_email_html
 from app.services.notification_sender import send_telegram, send_email
 
 logger = logging.getLogger(__name__)
@@ -59,7 +58,6 @@ def process_notification_queue():
                 if not settings:
                     logger.error(f"No settings found for company {notification.company_id}")
                     notification.status = 'failed'
-                    notification.error_message = "No notification settings found"
                     db.commit()
                     continue
                 
@@ -67,7 +65,6 @@ def process_notification_queue():
                 if not notification.payload:
                     logger.error(f"Notification {notification.id} has no payload")
                     notification.status = 'failed'
-                    notification.error_message = "No payload"
                     db.commit()
                     continue
                 
@@ -78,12 +75,8 @@ def process_notification_queue():
                     if not settings.telegram_enabled:
                         logger.warning(f"Telegram disabled for company {notification.company_id}")
                         notification.status = 'failed'
-                        notification.error_message = "Telegram disabled"
                         db.commit()
                         continue
-                    
-                    # Formatear mensaje
-                    message_text = format_telegram_message(notification.payload)
                     
                     # Enviar
                     success = send_telegram(notification, settings)
@@ -92,12 +85,8 @@ def process_notification_queue():
                     if not settings.email_enabled:
                         logger.warning(f"Email disabled for company {notification.company_id}")
                         notification.status = 'failed'
-                        notification.error_message = "Email disabled"
                         db.commit()
                         continue
-                    
-                    # Formatear HTML
-                    html_content = format_email_html(notification.payload)
                     
                     # Enviar
                     success = send_email(notification, settings)
@@ -105,7 +94,6 @@ def process_notification_queue():
                 else:
                     logger.error(f"Unknown channel: {notification.channel}")
                     notification.status = 'failed'
-                    notification.error_message = f"Unknown channel: {notification.channel}"
                     db.commit()
                     continue
                 
@@ -113,14 +101,12 @@ def process_notification_queue():
                 if success:
                     notification.status = 'sent'
                     notification.sent_at = datetime.now(SANTIAGO_TZ)
-                    notification.error_message = None
                     logger.info(
                         f"Sent {notification.channel} notification "
                         f"for company {notification.company_id}"
                     )
                 else:
                     notification.status = 'failed'
-                    notification.error_message = "Send failed"
                     logger.error(
                         f"Failed to send {notification.channel} notification "
                         f"for company {notification.company_id}"
@@ -134,60 +120,11 @@ def process_notification_queue():
                     exc_info=True
                 )
                 notification.status = 'failed'
-                notification.error_message = str(e)[:500]  # Limitar longitud
                 db.commit()
         
         logger.info(f"Finished processing {len(pending_notifications)} notifications")
         
     except Exception as e:
         logger.error(f"Error in process_notification_queue: {e}", exc_info=True)
-    finally:
-        db.close()
-
-
-def process_failed_notifications(max_retries: int = 3):
-    """Reintenta enviar notificaciones fallidas.
-    
-    Args:
-        max_retries: Número máximo de reintentos
-    """
-    db: Session = SessionLocal()
-    
-    try:
-        # Obtener notificaciones fallidas con reintentos pendientes
-        failed_notifications = db.query(NotificationQueue).filter(
-            and_(
-                NotificationQueue.status == 'failed',
-                NotificationQueue.retry_count < max_retries
-            )
-        ).all()
-        
-        if not failed_notifications:
-            return
-        
-        logger.info(f"Retrying {len(failed_notifications)} failed notifications")
-        
-        for notification in failed_notifications:
-            try:
-                # Incrementar contador de reintentos
-                notification.retry_count = (notification.retry_count or 0) + 1
-                
-                # Cambiar status a pending para que se procese
-                notification.status = 'pending'
-                notification.error_message = None
-                
-                db.commit()
-                
-                logger.info(
-                    f"Retrying notification {notification.id} "
-                    f"(attempt {notification.retry_count}/{max_retries})"
-                )
-                
-            except Exception as e:
-                logger.error(f"Error retrying notification {notification.id}: {e}")
-                db.rollback()
-        
-    except Exception as e:
-        logger.error(f"Error in process_failed_notifications: {e}", exc_info=True)
     finally:
         db.close()

@@ -29,4 +29,8 @@ class RecurringTemplate(Base):
             "autopay_day IS NULL OR (autopay_day >= 1 AND autopay_day <= 28)",
             name="check_autopay_day_range"
         ),
+                CheckConstraint(
+            "autopay_enabled = true OR autopay_day IS NULL",
+            name="check_autopay_day_requires_enabled"
+        ),
     )

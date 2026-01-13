@@ -183,3 +183,51 @@ def process_notifications():
         "status": "ok",
         "message": "Notification queue processed"
     }
+
+
+# List Queue Endpoint
+
+@router.get(
+    "/queue",
+    response_model=List[NotificationQueueResponse],
+    summary="List notification queue with filters",
+)
+def list_notification_queue(
+    company_id: UUID = None,
+    status: str = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+):
+    """List notification queue entries with optional filters.
+    
+    Args:
+        company_id: Filter by company UUID (optional)
+        status: Filter by status: pending, sent, or failed (optional)
+        limit: Maximum number of results (default 50, max 100)
+        offset: Offset for pagination (default 0)
+    
+    Returns:
+        List of notification queue entries ordered by scheduled_for DESC
+    """
+    # Enforce max limit
+    if limit > 100:
+        limit = 100
+    
+    # Build query
+    query = db.query(NotificationQueue)
+    
+    # Apply filters if provided
+    if company_id:
+        query = query.filter(NotificationQueue.company_id == company_id)
+    
+    if status:
+        query = query.filter(NotificationQueue.status == status)
+    
+    # Order by scheduled_for descending
+    query = query.order_by(NotificationQueue.scheduled_for.desc())
+    
+    # Apply pagination
+    queue_entries = query.offset(offset).limit(limit).all()
+    
+    return queue_entries

@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: controlgastos-db
+    environment:
+      POSTGRES_DB: controlgastos
+      POSTGRES_USER: controlgastos
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - controlgastos-net
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: controlgastos-api
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      TIMEZONE: ${TIMEZONE:-America/Santiago}
+    ports:
+      - "8000:8000"
+    networks:
+      - controlgastos-net
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: controlgastos-frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - controlgastos-net
+    depends_on:
+      - api
+    restart: unless-stopped
+
+networks:
+  controlgastos-net:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -6,7 +6,6 @@ Create Date: 2026-01-13
 
 """
 from alembic import op
-
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
@@ -34,32 +33,33 @@ def upgrade():
         sa.ForeignKeyConstraint(['company_id'], ['companies.id'], ),
         sa.UniqueConstraint('company_id')
     )
-
+    
     # Create notification_queue table
     op.create_table(
         'notification_queue',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('company_id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('notification_date', sa.Date(), nullable=False),
         sa.Column('channel', sa.String(length=50), nullable=False),
+        sa.Column('payload', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column('status', sa.String(length=20), nullable=False, server_default='pending'),
-        sa.Column('summary_content', sa.Text(), nullable=True),
+        sa.Column('scheduled_for', sa.DateTime(timezone=True), nullable=False),
         sa.Column('sent_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('error_message', sa.Text(), nullable=True),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('now()')),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('now()')),
         sa.PrimaryKeyConstraint('id'),
         sa.ForeignKeyConstraint(['company_id'], ['companies.id'], )
     )
-
+    
     # Create indexes
     op.create_index('ix_notification_queue_company_id', 'notification_queue', ['company_id'])
-    op.create_index('ix_notification_queue_notification_date', 'notification_queue', ['notification_date'])
+    op.create_index('ix_notification_queue_status', 'notification_queue', ['status'])
+    op.create_index('ix_notification_queue_scheduled_for', 'notification_queue', ['scheduled_for'])
 
 
 def downgrade():
     # Drop indexes
-    op.drop_index('ix_notification_queue_notification_date', table_name='notification_queue')
+    op.drop_index('ix_notification_queue_scheduled_for', table_name='notification_queue')
+    op.drop_index('ix_notification_queue_status', table_name='notification_queue')
     op.drop_index('ix_notification_queue_company_id', table_name='notification_queue')
     
     # Drop tables

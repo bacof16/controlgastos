@@ -6,7 +6,7 @@ from uuid import UUID
 import logging
 from datetime import datetime
 
-from app.models.database import get_db
+from app.database import get_db
 from app.models.notification_settings import NotificationSettings
 from app.models.notification_queue import NotificationQueue
 from app.schemas.notification_settings import (

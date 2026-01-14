@@ -2,11 +2,8 @@
 
 from datetime import datetime
 from sqlalchemy import Column, Integer, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-
-# Base declarativa para todos los modelos
-Base = declarative_base()
-
+from app.database import Base
+# Base declarativa para todos los modelo
 
 class TimestampMixin:
     """Mixin para agregar timestamps automáticos a los modelos."""

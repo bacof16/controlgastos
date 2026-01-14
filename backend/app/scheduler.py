@@ -7,7 +7,7 @@ from apscheduler.triggers.cron import CronTrigger
 import pytz
 from sqlalchemy.orm import Session
 
-from app.models.database import SessionLocal
+from app.database import SessionLocal
 from app.models.notification_settings import NotificationSettings
 from app.models.notification_queue import NotificationQueue
 from app.services.notification_builder import build_daily_summary

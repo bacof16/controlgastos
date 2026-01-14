@@ -9,4 +9,15 @@ from .notification_settings import NotificationSettings
 from .notification_queue import NotificationQueue
 from .alert_state import AlertState
 
-__all__ = ["Base", "Company", "User", "CompanyUser", "RecurringTemplate", "Payment", "AuditLog", "NotificationSettings", "AlertState""NotificationQueue",]
+__all__ = [
+    "Base",
+    "Company",
+    "User",
+    "CompanyUser",
+    "RecurringTemplate",
+    "Payment",
+    "AuditLog",
+    "NotificationSettings",
+    "NotificationQueue",
+    "AlertState",
+]

@@ -11,6 +11,7 @@ from app.models.database import SessionLocal
 from app.models.notification_settings import NotificationSettings
 from app.models.notification_queue import NotificationQueue
 from app.services.notification_builder import build_daily_summary
+from app.services.alert_scheduler import run_alert_checks
 
 logger = logging.getLogger(__name__)
 
@@ -184,6 +185,17 @@ def start_scheduler():
         
         # Cargar schedules de empresas
         load_all_company_schedules()
+
+    # Registrar job de monitoreo de alertas cada 10 minutos
+    scheduler.add_job(
+                func=run_alert_checks,
+                trigger='interval',
+                minutes=10,
+                id='alert_monitoring',
+                replace_existing=True,
+                name='System alerts monitoring'
+            )
+        logger.info("Alert monitoring job registered (every 10 minutes)")
 
 
 def shutdown_scheduler():

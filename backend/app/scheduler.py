@@ -188,14 +188,14 @@ def start_scheduler():
 
     # Registrar job de monitoreo de alertas cada 10 minutos
     scheduler.add_job(
-                func=run_alert_checks,
-                trigger='interval',
-                minutes=10,
-                id='alert_monitoring',
-                replace_existing=True,
-                name='System alerts monitoring'
-            )
-        logger.info("Alert monitoring job registered (every 10 minutes)")
+        func=run_alert_checks,
+        trigger='interval',
+        minutes=10,
+        id='alert_monitoring',
+        replace_existing=True,
+        name='System alerts monitoring',
+    )
+    logger.info("Alert monitoring job registered (every 10 minutes)")
 
 
 def shutdown_scheduler():

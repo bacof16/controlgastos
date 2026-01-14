@@ -1,4 +1,4 @@
-notification_sender.py  """Sender service for delivering notifications via Telegram and Email."""
+"""Sender service for delivering notifications via Telegram and Email."""
 
 import logging
 import os

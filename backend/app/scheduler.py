@@ -195,7 +195,7 @@ def start_scheduler():
                 replace_existing=True,
                 name='System alerts monitoring'
             )
-        logger.info("Alert monitoring job registered (every 10 minutes)")
+    logger.info("Alert monitoring job registered (every 10 minutes)")
 
 
 def shutdown_scheduler():

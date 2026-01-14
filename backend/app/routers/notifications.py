@@ -279,14 +279,14 @@ def retry_failed_notification(
     db_queue.sent_at = None
     # Keep payload intact - do not modify
 
-        # Log retry action
-        logger.info(
-                    f"Notification {queue_id} reset to pending for retry",
-                    extra={
-                                    "company_id": str(db_queue.company_id),
-                                    "channel": db_queue.channel
-                                }
-                )
+    # Log retry action
+    logger.info(
+        f"Notification {queue_id} reset to pending for retry",
+        extra={
+            "company_id": str(db_queue.company_id),
+            "channel": db_queue.channel
+        }
+    )
     
     db.commit()
     db.refresh(db_queue)

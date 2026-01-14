@@ -7,5 +7,6 @@ from .payment import Payment
 from .audit_log import AuditLog
 from .notification_settings import NotificationSettings
 from .notification_queue import NotificationQueue
+from .alert_state import AlertState
 
-__all__ = ["Base", "Company", "User", "CompanyUser", "RecurringTemplate", "Payment", "AuditLog", "NotificationSettings", "NotificationQueue"]
+__all__ = ["Base", "Company", "User", "CompanyUser", "RecurringTemplate", "Payment", "AuditLog", "NotificationSettings", , "AlertState""NotificationQueue"]

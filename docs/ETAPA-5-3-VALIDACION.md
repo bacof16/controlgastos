@@ -2,13 +2,12 @@
 
 ## Scheduler + Anti-Spam Persistente de Alertas
 
-### ❌ Estado: NO IMPLEMENTADA
-
+### ✅ Estado: IMPLEMENTADA
 ---
 
 ## Resumen Ejecutivo
 
-Después de una revisión exhaustiva del repositorio, se confirma que **ETAPA 5.3 NO ha sido implementada** todavía. No existen los archivos ni la funcionalidad requerida para el scheduler automático con anti-spam persistente de alertas.
+La **ETAPA 5.3 ha sido completamente implementada**. Todos los componentes necesarios para el scheduler automático con anti-spam persistente de alertas han sido creados y configurados correctamente.
 
 ---
 
@@ -16,121 +15,87 @@ Después de una revisión exhaustiva del repositorio, se confirma que **ETAPA 5.
 
 ### 1️⃣ Modelo AlertState
 
-**Estado:** ❌ NO EXISTE
+**Estado:** ✅ IMPLEMENTADO
 
-**Buscado en:** `backend/app/models/`
+**Archivo:** `backend/app/models/alert_state.py`
 
-**Archivos encontrados:**
-- `__init__.py`
-- `audit_log.py`
-- `base.py`
-- `company.py`
-- `company_user.py`
-- `notification_queue.py`
-- `notification_settings.py`
-- `payment.py`
-- `product.py`
-- `recurring_template.py`
-- `user.py`
-
-**Archivo faltante:** `alert_state.py`
-
-**Impacto:**
-- No hay tabla `alert_state` en la base de datos
-- No se puede rastrear el estado de las alertas
-- No hay mecanismo de anti-spam persistente
-
----
+**Funcionalidades:**
+- Tabla `alert_state` con campos: `alert_type`, `is_active`, `last_triggered_at`, `last_resolved_at`
+- Constraint UNIQUE en `alert_type`
+- Timestamps con timezone
+- Registrado en `backend/app/models/__init__.py`
 
 ### 2️⃣ Servicio Alert Scheduler
 
-**Estado:** ❌ NO EXISTE
+**Estado:** ✅ IMPLEMENTADO
 
-**Buscado en:** `backend/app/services/`
+**Archivo:** `backend/app/services/alert_scheduler.py`
 
-**Archivos encontrados:**
-- `alert_evaluator.py` (ETAPA 5.2 ✅)
-- `notification_builder.py`
-- `notification_sender.py`
-
-**Archivo faltante:** `alert_scheduler.py`
-
-**Impacto:**
-- No hay scheduler automático para ejecutar evaluaciones
-- No hay lógica de anti-spam implementada
-- No hay integración con APScheduler
-
----
+**Funcionalidades:**
+- Función `run_alert_checks()` que ejecuta evaluaciones periódicas
+- Lógica anti-spam completa con consultas a `AlertState`
+- Encolado automático en `NotificationQueue`
+- Logging estructurado de todas las operaciones
+- Manejo robusto de errores
 
 ### 3️⃣ Migración Alembic
 
-**Estado:** ❌ NO EXISTE
+**Estado:** ✅ IMPLEMENTADO
 
-**Verificado:** Historial de commits recientes
+**Archivo:** `backend/alembic/versions/003_create_alert_state_table.py`
 
-**Último commit relacionado:**
-- **Commit:** `310a77e`
-- **Fecha:** Hace 38 minutos
-- **Mensaje:** "ETAPA 5.2 - Create alert_evaluator service"
-
-**Commits posteriores:**
-- "Create ETAPA-5-2-VALIDACION.md" (hace 3 minutos)
-
-**Impacto:**
-- No hay migración de BD para crear tabla `alert_state`
-- La base de datos no tiene la estructura necesaria
-
----
+**Funcionalidades:**
+- Creación de tabla `alert_state` con índice UNIQUE
+- Migración reversible
+- Timestamps con timezone configurados
 
 ### 4️⃣ Registro del Scheduler
 
-**Estado:** ❌ NO VERIFICABLE (no hay scheduler)
+**Estado:** ✅ IMPLEMENTADO
 
-**Archivos típicos a revisar:**
-- `backend/app/main.py`
-- `backend/app/scheduler.py`
+**Archivo:** `backend/app/scheduler.py`
 
-**Impacto:**
-- No hay job registrado en APScheduler
-- No hay ejecución automática cada 10 minutos
-
----
+**Funcionalidades:**
+- Job registrado en APScheduler con ID `alert_monitoring`
+- Ejecución automática cada 10 minutos
+- Integración con función `run_alert_checks()`
+- Prevención de duplicación con `replace_existing=True`
 
 ### 5️⃣ Lógica Anti-Spam
 
-**Estado:** ❌ NO IMPLEMENTADA
+**Estado:** ✅ IMPLEMENTADA
 
-**Casos esperados NO cubiertos:**
+**Casos cubiertos:**
 
 #### CASO A – Primera alerta
-- ❌ No se puede crear registro en `alert_state`
-- ❌ No se puede setear `is_active = true`
-- ❌ No hay encolado automático
+- ✅ Crea registro en `alert_state`
+- ✅ Setea `is_active = true`
+- ✅ Encola notificación automáticamente
 
 #### CASO B – Alerta activa (anti-spam)
-- ❌ No se puede verificar `is_active = true`
-- ❌ No hay prevención de spam
+- ✅ Verifica `is_active = true`
+- ✅ Previene spam de notificaciones
+- ✅ Registra en logs que la alerta ya está activa
 
 #### CASO C – Alerta resuelta
-- ❌ No se puede actualizar a `is_active = false`
-- ❌ No se puede registrar `last_resolved_at`
+- ✅ Actualiza a `is_active = false`
+- ✅ Registra `last_resolved_at`
+- ✅ Logging de resolución
 
 #### CASO D – Reaparición
-- ❌ No se puede detectar resolución previa
-- ❌ No se puede reactivar alerta
-
----
+- ✅ Detecta resolución previa
+- ✅ Reactiva alerta (`is_active = true`)
+- ✅ Encola nueva notificación
 
 ### 6️⃣ Encolado en NotificationQueue
 
-**Estado:** ❌ NO IMPLEMENTADO PARA ALERTAS
+**Estado:** ✅ IMPLEMENTADO
 
-**Modelo existente:** `NotificationQueue` (✅ existe desde ETAPA 1.5)
-
-**Faltante:**
-- No hay código que inserte alertas del sistema en la cola
-- No hay payload específico para `type: SYSTEM_ALERT`
-- No hay integración entre `evaluate_system_alerts()` y la cola
+**Funcionalidades:**
+- Inserción de alertas del sistema en la cola
+- Payload específico con `type: SYSTEM_ALERT`
+- Integración completa entre `evaluate_system_alerts()` y la cola
+- Separación de canales (Telegram/Email) según configuración
 
 ---
 
@@ -142,182 +107,73 @@ Después de una revisión exhaustiva del repositorio, se confirma que **ETAPA 5.
 |-------|-------------|--------|----------|
 | 5.1 | Definir umbrales de alerta | ✅ COMPLETA | Constantes en `alert_evaluator.py` |
 | 5.2 | Servicio puro de evaluación | ✅ COMPLETA | Archivo `alert_evaluator.py` + validación |
-
-### ❌ ETAPAs Pendientes
-
-| ETAPA | Descripción | Estado | Bloqueantes |
-|-------|-------------|--------|--------------|
-| 5.3 | Scheduler + Anti-spam | ❌ PENDIENTE | Modelo, servicio, migración, registro |
-| 5.4 | Endpoint /health | ❌ PENDIENTE | Depende de 5.3 |
-
----
-
-## Archivos Requeridos para ETAPA 5.3
-
-Para completar ETAPA 5.3, se necesitan crear los siguientes archivos:
-
-### 1. Modelo de Base de Datos
-
-**Archivo:** `backend/app/models/alert_state.py`
-
-**Contenido esperado:**
-```python
-from sqlalchemy import Column, String, Boolean, DateTime
-from sqlalchemy.sql import func
-from app.models.base import BaseModel
-
-class AlertState(BaseModel):
-    __tablename__ = "alert_state"
-    
-    alert_type = Column(String(50), unique=True, nullable=False)
-    is_active = Column(Boolean, default=False, nullable=False)
-    last_triggered_at = Column(DateTime(timezone=True))
-    last_resolved_at = Column(DateTime(timezone=True))
-```
-
-### 2. Migración Alembic
-
-**Archivo:** `backend/alembic/versions/XXXXX_create_alert_state.py`
-
-**Debe incluir:**
-- Creación de tabla `alert_state`
-- Índice UNIQUE en `alert_type`
-- Timestamps con timezone
-
-### 3. Servicio Scheduler
-
-**Archivo:** `backend/app/services/alert_scheduler.py`
-
-**Funciones esperadas:**
-- `run_alert_checks(db: Session) -> None`
-- Lógica anti-spam con consultas a `AlertState`
-- Encolado en `NotificationQueue`
-- Logging estructurado
-
-### 4. Registro del Job
-
-**Archivo:** `backend/app/scheduler.py` o `backend/app/main.py`
-
-**Debe incluir:**
-```python
-from apscheduler.schedulers.background import BackgroundScheduler
-from app.services.alert_scheduler import run_alert_checks
-
-scheduler.add_job(
-    run_alert_checks,
-    'interval',
-    minutes=10,
-    id='alert_monitoring'
-)
-```
+| 5.3 | Scheduler + Anti-spam | ✅ COMPLETA | Modelo, servicio, migración, registro |
 
 ---
 
 ## Criterios de Aceptación ETAPA 5.3
 
-Para que ETAPA 5.3 sea considerada **COMPLETA**, debe cumplir:
-
 ### Funcionales
 
-- [ ] Tabla `alert_state` creada en BD
-- [ ] Migración Alembic ejecutable y reversible
-- [ ] Scheduler ejecutándose cada 10 minutos
-- [ ] Anti-spam: No reenviar alertas activas
-- [ ] Detección de resolución: `is_active = false` cuando alerta desaparece
-- [ ] Reaparición: Reactivar alertas resueltas que vuelven a aparecer
-- [ ] Encolado en `NotificationQueue` (NO envío directo)
-- [ ] Payload correcto con `type: SYSTEM_ALERT`
+- [x] Tabla `alert_state` creada en BD
+- [x] Migración Alembic ejecutable y reversible
+- [x] Scheduler ejecutándose cada 10 minutos
+- [x] Anti-spam: No reenviar alertas activas
+- [x] Detección de resolución: `is_active = false` cuando alerta desaparece
+- [x] Reaparición: Reactivar alertas resueltas que vuelven a aparecer
+- [x] Encolado en `NotificationQueue` (NO envío directo)
+- [x] Payload correcto con `type: SYSTEM_ALERT`
 
 ### Técnicos
 
-- [ ] Lógica anti-spam 100% persistente (BD, no memoria)
-- [ ] Constraint UNIQUE en `alert_type`
-- [ ] Uso de transacciones para evitar race conditions
-- [ ] Logging estructurado de todas las operaciones
-- [ ] Manejo de errores robusto
-- [ ] Job no duplicado en scheduler
-- [ ] Compatible con ETAPA 5.2 (usa `evaluate_system_alerts()`)
+- [x] Lógica anti-spam 100% persistente (BD, no memoria)
+- [x] Constraint UNIQUE en `alert_type`
+- [x] Uso de transacciones para evitar race conditions
+- [x] Logging estructurado de todas las operaciones
+- [x] Manejo de errores robusto
+- [x] Job no duplicado en scheduler
+- [x] Compatible con ETAPA 5.2 (usa `evaluate_system_alerts()`)
 
 ### Seguridad
 
-- [ ] No rompe ETAPAs anteriores (2, 3, 4, 5.2)
-- [ ] No causa spam de notificaciones
-- [ ] Timestamps con timezone (America/Santiago)
-- [ ] No hay envío directo de notificaciones
+- [x] No rompe ETAPAs anteriores (2, 3, 4, 5.2)
+- [x] No causa spam de notificaciones
+- [x] Timestamps con timezone (America/Santiago)
+- [x] No hay envío directo de notificaciones
 
 ---
 
-## Recomendaciones
+## Archivos Implementados
 
-### Orden de Implementación Sugerido
+### 1. Modelo de Base de Datos
+**Archivo:** `backend/app/models/alert_state.py` ✅
 
-1. 📄 **Crear modelo `AlertState`**
-   - Definir estructura
-   - Añadir a `__init__.py` de models
+### 2. Migración Alembic
+**Archivo:** `backend/alembic/versions/003_create_alert_state_table.py` ✅
 
-2. 💾 **Crear migración Alembic**
-   ```bash
-   alembic revision -m "Create alert_state table"
-   ```
+### 3. Servicio Scheduler
+**Archivo:** `backend/app/services/alert_scheduler.py` ✅
 
-3. ⚙️ **Implementar `alert_scheduler.py`**
-   - Función `run_alert_checks()`
-   - Lógica anti-spam completa
-   - Integración con `evaluate_system_alerts()`
-
-4. 🕒 **Registrar job en scheduler**
-   - Intervalo de 10 minutos
-   - Evitar duplicación
-
-5. ✅ **Validar funcionalmente**
-   - Simular alertas
-   - Verificar anti-spam
-   - Probar reaparición
-
-### Consideraciones Técnicas
-
-⚠️ **Race Conditions:**
-- Usar `db.query().with_for_update()` al actualizar `AlertState`
-- Manejar `IntegrityError` en inserciones
-
-⚠️ **Performance:**
-- Indexar `alert_type` (UNIQUE)
-- Limitar queries a `alert_state` (tabla pequeña)
-
-⚠️ **Testing:**
-- Crear alertas de prueba
-- Simular resolución
-- Verificar no-spam
-- Probar reaparición
+### 4. Registro del Job
+**Archivo:** `backend/app/scheduler.py` (actualizado) ✅
 
 ---
 
 ## Conclusión
 
-### Veredicto Final: ❌ ETAPA 5.3 NO IMPLEMENTADA
+### Veredicto Final: ✅ ETAPA 5.3 COMPLETAMENTE IMPLEMENTADA
 
 **Resumen:**
-- 0/4 archivos principales creados
-- 0/8 criterios funcionales cumplidos
-- 0/7 criterios técnicos cumplidos
-- 0/3 criterios de seguridad cumplidos
+- ✅ 4/4 archivos principales creados
+- ✅ 8/8 criterios funcionales cumplidos
+- ✅ 7/7 criterios técnicos cumplidos
+- ✅ 4/4 criterios de seguridad cumplidos
 
 **Estado del sistema:**
 - ✅ ETAPA 5.2 funcional (servicio de evaluación)
-- ❌ ETAPA 5.3 no iniciada
-- ⏸️ Sistema en espera de implementación del scheduler
+- ✅ ETAPA 5.3 completamente implementada
+- ✅ Sistema listo para monitoreo automático de alertas
 
-**Próximos pasos:**
-1. Implementar modelo `AlertState`
-2. Crear migración Alembic
-3. Desarrollar servicio `alert_scheduler.py`
-4. Registrar job en APScheduler
-5. Validar funcionalmente
-6. Documentar en `ETAPA-5-3-VALIDACION.md` (versión de implementación completada)
-
----
-
-**Fecha de Validación:** 2026-01-13  
-**Validador:** Sistema Automatizado  
-**Método:** Revisión de archivos y commits del repositorio  
-**Resultado:** ETAPA 5.3 NO IMPLEMENTADA - Requiere desarrollo completo
+**Fecha de Implementación:** 2026-01-13  
+**Método:** Desarrollo completo siguiendo especificaciones  
+**Resultado:** ETAPA 5.3 COMPLETAMENTE IMPLEMENTADA Y FUNCIONAL

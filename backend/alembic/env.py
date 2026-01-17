@@ -1,13 +1,21 @@
+from app.models.base import Base
 import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
+from sqlalchemy import text
 from sqlalchemy import pool
 
 from alembic import context
 
 # this is the Alembic Config object
 config = context.config
+
+import os
+import sys
+sys.path.append(os.getcwd())
+from app.database import DATABASE_URL
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:
@@ -20,7 +28,7 @@ if database_url:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-target_metadata = None
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -68,7 +76,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         # Enable UUID extension
-        connection.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
+        connection.execute(text('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'))
         connection.commit()
         
         context.configure(

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, ForeignKey, Index
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import JSON, Column, String, DateTime, ForeignKey, Index
+from sqlalchemy.dialects.postgresql import UUID
 from .base import Base
 
 
@@ -14,8 +14,8 @@ class AuditLog(Base):
     entity_id = Column(UUID(as_uuid=True), nullable=False)
     action = Column(String, nullable=False)  # create, update, delete, autopay
     changed_by = Column(UUID(as_uuid=True), nullable=True)
-    before_data = Column(JSONB, nullable=True)
-    after_data = Column(JSONB, nullable=True)
+    before_data = Column(nullable=True)
+    after_data = Column(nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     __table_args__ = (

@@ -2,8 +2,8 @@
 
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import JSON, Column, String, DateTime, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
 from .base import Base
 
 
@@ -11,7 +11,7 @@ class NotificationQueue(Base):
     """Cola de notificaciones con payload genérico.
     
     Arquitectura:
-    - Payload flexible (JSONB) para cualquier tipo de notificación
+    - Payload flexible (JSON) para cualquier tipo de notificación
     - Estado de envío (pending/sent/failed)
     - Agendamiento programable (scheduled_for)
     - Sin enviar nada todavía (estructura preparada)
@@ -45,7 +45,7 @@ class NotificationQueue(Base):
     
     # Payload genérico
     payload = Column(
-        JSONB,
+        JSON,
         nullable=False,
         comment="Contenido de la notificación (formato flexible)"
     )

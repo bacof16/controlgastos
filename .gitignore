@@ -53,3 +53,7 @@ Thumbs.db
 # Backups
 *.bak
 *.backup
+
+# Added by Helper
+frontend_old/
+*.db

@@ -133,11 +133,7 @@ export default function PaymentsPage() {
             setIsInstallment(false);
         } else {
             console.error('Backend Error:', res);
-            let errMsg = 'Error Desconocido';
-            try {
-                const errJson = await res.json();
-                errMsg = JSON.stringify(errJson, null, 2);
-            } catch(e) { errMsg = res.statusText; }
+            const errMsg = res.error || 'Error Desconocido';
             alert(`❌ Error (${res.status}): ${errMsg}`);
         }
     } catch (err) {

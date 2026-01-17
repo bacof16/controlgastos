@@ -242,7 +242,7 @@ export default function DashboardPage() {
                 <ActionButton label="Auditoría" />
             </div>
             
-            <button onClick={() => { setEditingPayment(null); setIsModalOpen(true); }} style={{ 
+            <button onClick={onClick} style={{ 
                 background: '#2563eb', color: 'white', border: 'none', padding: '0.8rem 1.5rem', borderRadius: '8px', 
                 fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)' 
             }}>
@@ -401,9 +401,9 @@ function KpiCard({ title, amount, color, label }: any) {
     );
 }
 
-function ActionButton({ label }: any) {
+function ActionButton({ label, onClick }: any) {
     return (
-        <button onClick={() => { setEditingPayment(null); setIsModalOpen(true); }} style={{ 
+        <button onClick={onClick} style={{ 
             background: 'rgba(255,255,255,0.05)', color: '#ccc', border: '1px solid #333', 
             padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' 
         }}>

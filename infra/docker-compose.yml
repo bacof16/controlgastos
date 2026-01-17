@@ -33,19 +33,19 @@ services:
       - db
     restart: unless-stopped
 
-#   frontend:
-#     build:
-#       context: ../frontend
-#       dockerfile: Dockerfile
-#     container_name: controlgastos-frontend
-#     ports:
-#       - "3000:3000"
-#     networks:
-#       - controlgastos-net
-#     depends_on:
-#       - api
-#     restart: unless-stopped
-# 
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: controlgastos-frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - controlgastos-net
+    depends_on:
+      - api
+    restart: unless-stopped
+
 networks:
   controlgastos-net:
     driver: bridge

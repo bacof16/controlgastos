@@ -242,7 +242,7 @@ export default function DashboardPage() {
                 <ActionButton label="Auditoría" />
             </div>
             
-            <button onClick={onClick} style={{ 
+            <button onClick={() => { setEditingPayment(null); setIsModalOpen(true); }} style={{ 
                 background: '#2563eb', color: 'white', border: 'none', padding: '0.8rem 1.5rem', borderRadius: '8px', 
                 fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)' 
             }}>
